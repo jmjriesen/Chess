@@ -1,5 +1,6 @@
 use colored::*;
 mod pices;
+use pices::Pice;
 pub struct Player{
     color : String,
     name :  String
@@ -14,23 +15,29 @@ impl Player{
 }
 
 pub struct Board<'a>{
-    grid :Vec<Vec<Option<pices::Pawn<'a>>>>,
+    grid :Vec<Vec<Option<Box<dyn pices::Pice+'a>>>>,
     player_one:&'a Player,
     player_two:&'a Player,
 }
 
-impl <'a> Board <'a>{
-    pub fn new<'b>(player_one:&'b Player,player_two:&'b Player)->Board<'b>{
+impl <'b> Board <'b>{
+    pub fn new(player_one:&'b Player,player_two:&'b Player)->Board<'b>{
 
         let mut t = Board{
-            grid: vec![vec![None; 8]; 8],
+            grid: Vec::new(),
                 player_one:player_one,
             player_two:player_two,
         };
 
         for x in 0..8{
-            t.grid[1][x] = Some(pices::Pawn::new(player_one));
-            t.grid[8-2][x] = Some(pices::Pawn::new(player_two));
+            t.grid.push(Vec::new());
+            for _ in 0..8{
+                t.grid[x].push(None);
+            }
+        }
+        for x in 0..8{
+            t.grid[1][x] = Some(Box::new(pices::Pawn::new(player_one)));
+            t.grid[6][x] = Some(Box::new(pices::Pawn::new(player_two)));
         }
         t
     }
@@ -52,7 +59,7 @@ impl <'a> Board <'a>{
     fn pawn_to_string_test() {
 
         let jacob = Player::new("Jacob".to_string(),"red".to_string());
-        let p  = pices::Pawn::new(&jacob);
+        let p = pices::Pawn::new(&jacob);
         assert_eq!(p.to_string(), "P".red());
     }
     #[test]
