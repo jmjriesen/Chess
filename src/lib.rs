@@ -1,6 +1,5 @@
-use colored::*;
 mod pices;
-use pices::Pice;
+pub mod terminal;
 pub struct Player{
     color : String,
     name :  String
@@ -39,35 +38,30 @@ impl <'b> Board <'b>{
             t.grid[1][x] = Some(Box::new(pices::Pawn::new(player_one)));
             t.grid[6][x] = Some(Box::new(pices::Pawn::new(player_two)));
         }
+
+        t.grid[0][0] = Some(Box::new(pices::Rook::new(player_one)));
+        t.grid[7][0] = Some(Box::new(pices::Rook::new(player_two)));
+        t.grid[0][7] = Some(Box::new(pices::Rook::new(player_one)));
+        t.grid[7][7] = Some(Box::new(pices::Rook::new(player_two)));
+
+        t.grid[0][1] = Some(Box::new(pices::Knight::new(player_one)));
+        t.grid[7][1] = Some(Box::new(pices::Knight::new(player_two)));
+        t.grid[0][6] = Some(Box::new(pices::Knight::new(player_one)));
+        t.grid[7][6] = Some(Box::new(pices::Knight::new(player_two)));
+
+
+        t.grid[0][2] = Some(Box::new(pices::Bishops::new(player_one)));
+        t.grid[7][2] = Some(Box::new(pices::Bishops::new(player_two)));
+        t.grid[0][5] = Some(Box::new(pices::Bishops::new(player_one)));
+        t.grid[7][5] = Some(Box::new(pices::Bishops::new(player_two)));
+
+        t.grid[0][3] = Some(Box::new(pices::Queen::new(player_one)));
+        t.grid[7][3] = Some(Box::new(pices::Queen::new(player_two)));
+        t.grid[0][4] = Some(Box::new(pices::King::new(player_one)));
+        t.grid[7][4] = Some(Box::new(pices::King::new(player_two)));
+
         t
     }
-    pub fn print(&self){
-        println!("{} vs {}",self.player_one.name,self.player_two.name);
-        for row in &self.grid {
-            for entry in row{
-                let string= match entry {
-                    None => "X".color("white"),
-                    Some(e)=> e.to_string(),
-                };
-                print!(" {}",string);
-            }
-            println!("");
-        }
-    }
-}
-    #[test]
-    fn pawn_to_string_test() {
 
-        let jacob = Player::new("Jacob".to_string(),"red".to_string());
-        let p = pices::Pawn::new(&jacob);
-        assert_eq!(p.to_string(), "P".red());
-    }
-    #[test]
-    fn board_printing_test(){
-        let jacob = Player::new("Jacob".to_string(),"red".to_string());
-        let tony = Player::new("tony".to_string(),"blue".to_string());
-        let board = Board::new(&jacob,&tony);
-        board.print();
-        panic!();
-    }
+}
 
