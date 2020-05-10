@@ -13,17 +13,17 @@ impl <'a>Print for pieces::Pawn<'a>{
 }
 impl <'a>Print for pieces::Knight<'a>{
     fn to_string(&self)->colored::ColoredString{
-        "R".to_string().color(self.owner.color.clone())
+        "N".to_string().color(self.owner.color.clone())
     }
 }
 impl <'a>Print for pieces::Bishops<'a>{
     fn to_string(&self)->colored::ColoredString{
-        "N".to_string().color(self.owner.color.clone())
+        "B".to_string().color(self.owner.color.clone())
     }
 }
 impl <'a>Print for pieces::Rook<'a>{
     fn to_string(&self)->colored::ColoredString{
-        "B".to_string().color(self.owner.color.clone())
+        "R".to_string().color(self.owner.color.clone())
     }
 }
 impl <'a>Print for pieces::Queen<'a>{
