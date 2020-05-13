@@ -317,3 +317,39 @@ fn king_movement_test2(){
     assert_eq!(result,Err("Ilegle Move".to_string()));
 }
 
+
+#[test]
+fn queen_movement_test2(){
+    let jacob = Player::new("Jacob".to_string(),"red".to_string());
+    let tony = Player::new("tony".to_string(),"blue".to_string());
+    let mut game= Game::new(&jacob,&tony);
+    game.display();
+
+    let result =  game.action((5,1),(5,2));
+    game.display();
+    assert_eq!(result,Ok(()));
+
+    let result =  game.action((4,0),(5,1));
+    game.display();
+    assert_eq!(result,Ok(()));
+
+    let result =  game.action((5,1),(4,2));
+    game.display();
+    assert_eq!(result,Ok(()));
+
+    let result =  game.action((4,2),(4,3));
+    game.display();
+    assert_eq!(result,Ok(()));
+
+    let result =  game.action((4,3),(4,5));
+    game.display();
+    assert_eq!(result,Ok(()));
+
+    let result =  game.action((4,5),(2,5));
+    game.display();
+    assert_eq!(result,Ok(()));
+
+    let result =  game.action((2,5),(0,3));
+    game.display();
+    assert_eq!(result,Ok(()));
+}

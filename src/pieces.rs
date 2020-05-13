@@ -61,11 +61,13 @@ impl <'a>Pice for Pawn<'a>{
 
 pub struct Rook<'a>{
     pub     owner : &'a Player,
+    moved : bool
 }
 impl <'a> Rook<'a>{
     pub fn new(owner:&Player)->Rook{
         Rook{
             owner : owner,
+            moved : false,
         }
     }
 }
@@ -91,7 +93,9 @@ impl <'a>Pice for Rook<'a>{
     fn owner(&self)->&Player{
         self.owner
     }
-    fn make_move(&mut self){}
+    fn make_move(&mut self){
+        self.moved = true
+    }
 }
 
 pub struct Knight<'a>{
@@ -157,11 +161,13 @@ impl <'a>Pice for Bishops<'a>{
 
 pub struct King<'a>{
     pub       owner : &'a Player,
+    moved : bool
 }
 impl <'a> King<'a>{
     pub fn new(owner:&Player)->King{
         King{
             owner : owner,
+            moved : false,
         }
     }
 }
@@ -169,10 +175,8 @@ impl <'a>Pice for King<'a>{
     fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 1 || x_delta.abs() == 0) && (y_delta.abs() == 1 || y_delta.abs() == 0){
-            println!("hit");
             path_clear(from,(x_delta,y_delta),1,board,self.owner())
         }else{
-            println!("other");
             false
         }
         //TODO Castling
@@ -180,7 +184,9 @@ impl <'a>Pice for King<'a>{
     fn owner(&self)->&Player{
         self.owner
     }
-    fn make_move(&mut self){}
+    fn make_move(&mut self){
+        self.moved  = true;
+    }
 }
 
 pub struct Queen<'a>{
