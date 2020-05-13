@@ -28,33 +28,28 @@ impl <'a>Print for pieces::Rook<'a>{
 }
 impl <'a>Print for pieces::Queen<'a>{
     fn to_string(&self)->colored::ColoredString{
-        "K".to_string().color(self.owner.color.clone())
+        "Q".to_string().color(self.owner.color.clone())
     }
 }
 impl <'a>Print for pieces::King<'a>{
     fn to_string(&self)->colored::ColoredString{
-        "Q".to_string().color(self.owner.color.clone())
+        "K".to_string().color(self.owner.color.clone())
     }
 }
 impl <'a>Print for Board<'a>{
     fn to_string(&self)->colored::ColoredString{
-        let mut tile_paridy = true;
-        for row in &self.grid {
-            for entry in row{
+        //This method dose not adhere to the best of practices and uses the terminal as a global variable.
+        self.foreach(|entry,x,y|{
+            let symbol = match entry {
+                None => " ".color("white"),
+                Some(e)=> e.to_string().bold(),
+            };
+            let background = if x%2!=y%2 {"white"} else {"Black"};
 
-                let symbol = match entry {
-                    None => " ".color("white"),
-                    Some(e)=> e.to_string().bold(),
-                };
-                let background = if tile_paridy {"white"} else {"Black"};
+            print!(" {}",symbol.on_color(background));
 
-                print!(" {}",symbol.on_color(background));
-
-                tile_paridy = !tile_paridy;
-            }
-            tile_paridy = !tile_paridy;
-            println!("");
-        }
+         //   tile_paridy = !tile_paridy;
+        },|_|{println!("")});
         "temp".color("white")
     }
 }
@@ -63,7 +58,7 @@ impl <'a>Print for Board<'a>{
 fn pawn_to_string_test() {
     use crate::Player;
     let jacob = Player::new("Jacob".to_string(),"red".to_string());
-    let p = pieces::Pawn::new(&jacob);
+    let p = pieces::Pawn::new(&jacob,1);
     assert_eq!(p.to_string(), "P".red());
 }
  
