@@ -1,9 +1,12 @@
 use crate::Player;
 use crate::board;
+use crate::board::Action;
+use crate::board::Invalid;
+use crate::board::Move;
 use crate::terminal;
 
 pub trait Pice: terminal::Print{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool;
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>;
     fn owner(&self)->&Player;
     fn make_move(&mut self);
 }
@@ -23,32 +26,33 @@ impl <'a> Pawn<'a>{
     }
 }
 impl <'a>Pice for Pawn<'a>{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
 
         let (x_delta,y_delta) = find_delta(from,to);
 
         if y_delta == self.direction && x_delta ==0{
             match board.get(to){
-                None => true,
-                Some(_)=> false,
+                None => Box::new(Move::new(from,to)),
+                Some(_)=> Box::new(Invalid::new()),
         }
         }else if y_delta == 2*self.direction && x_delta == 0 && self.moved == false{
             match board.get(to){
-                None => true,
-                Some(_)=> false,
+                None => Box::new(Move::new(from,to)),
+                Some(_)=> Box::new(Invalid::new()),
             }
-        }else if y_delta == self.direction && x_delta ==1{
+        }else if y_delta == self.direction && (x_delta ==1 || x_delta ==-1){
             match board.get(to){
-                None => false,
-                Some(to_take)=> to_take.owner()!=self.owner(),
-            }
-        }else if y_delta == self.direction && x_delta ==-1{
-            match board.get(to){
-                None => false,
-                Some(to_take)=> to_take.owner()!=self.owner(),
+                None => Box::new(Invalid::new()),
+                Some(to_take)=> {
+                    if to_take.owner()!=self.owner(){
+                        Box::new(Move::new(from,to))
+                    }else {
+                        Box::new(Invalid::new())
+                    }
+                },
             }
         }else{
-            false
+            Box::new(Invalid::new())
         }
     }
     fn owner(&self)->&Player{
@@ -72,7 +76,7 @@ impl <'a> Rook<'a>{
     }
 }
 impl <'a>Pice for Rook<'a>{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
         let (x_delta,y_delta) = find_delta(from,to);
         if x_delta ==0{
             if y_delta < 0 {
@@ -87,7 +91,7 @@ impl <'a>Pice for Rook<'a>{
                 path_clear(from,(1,0),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-            false
+           Box::new(Invalid::new())
         }
     }
     fn owner(&self)->&Player{
@@ -109,12 +113,12 @@ impl <'a> Knight<'a>{
     }
 }
 impl <'a>Pice for Knight<'a>{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 2 && y_delta.abs() == 1) ||( x_delta.abs() == 1 && y_delta.abs() == 2){
          path_clear(from,(x_delta,y_delta),1,board,self.owner())
         }else{
-            false
+            Box::new(Invalid::new())
         }
     }
     fn owner(&self)->&Player{
@@ -134,7 +138,7 @@ impl <'a> Bishops<'a>{
     }
 }
 impl <'a>Pice for Bishops<'a>{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
         let (x_delta,y_delta) = find_delta(from,to);
 
         if x_delta == y_delta{
@@ -150,7 +154,7 @@ impl <'a>Pice for Bishops<'a>{
                 path_clear(from,(1,-1),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-            false
+            Box::new(Invalid::new())
         }
     }
     fn owner(&self)->&Player{
@@ -172,12 +176,12 @@ impl <'a> King<'a>{
     }
 }
 impl <'a>Pice for King<'a>{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 1 || x_delta.abs() == 0) && (y_delta.abs() == 1 || y_delta.abs() == 0){
             path_clear(from,(x_delta,y_delta),1,board,self.owner())
         }else{
-            false
+            Box::new(Invalid::new())
         }
         //TODO Castling
     }
@@ -200,7 +204,7 @@ impl <'a> Queen<'a>{
     }
 }
 impl <'a>Pice for Queen<'a>{
-    fn can_move(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->bool{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
         println!("Much Other");
         let (x_delta,y_delta) = find_delta(from,to);
         if x_delta == y_delta{
@@ -228,7 +232,7 @@ impl <'a>Pice for Queen<'a>{
                 path_clear(from,(1,0),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-            false
+          Box::new(Invalid::new())
         }
     }
     fn owner(&self)->&Player{
@@ -244,21 +248,28 @@ fn find_delta(from:(usize,usize),to:(usize,usize))->(isize,isize){
     let y_delta = y_to as isize - y_from as isize;
     (x_delta,y_delta)
 }
-fn path_clear(start:(usize,usize),derection:(isize,isize),length:usize,board:&board::Board,player:&Player)->bool{
+fn path_clear(start:(usize,usize),derection:(isize,isize),length:usize,board:&board::Board,player:&Player)->Box<dyn Action>{
     let mut path_clear = true;
     for i in 1..length{
         match board.get(compute_pose(start,derection,i)){
-            None =>{},
+            None =>{ },
             Some(_) => {path_clear = false; break;},
         };
     }
     if path_clear {
-        match board.get(compute_pose(start,derection,length)){
-            None => true,
-            Some(target) => target.owner() != player,
+        let to = compute_pose(start,derection,length);
+        match board.get(to){
+            None => Box::new(Move::new(start,to)),
+            Some(to_take)=> {
+                if to_take.owner()!=player {
+                    Box::new(Move::new(start,to))
+                }else {
+                    Box::new(Invalid::new())
+                }
+            },
         }
     }else{
-        false
+        Box::new(Invalid::new())
     }
 }
 

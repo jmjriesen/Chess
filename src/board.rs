@@ -1,4 +1,5 @@
 use crate::pieces;
+use crate::pieces::Pice;
 use crate::Player;
 pub struct Board<'a>{
       grid :Vec<Vec<Option<Box<dyn pieces::Pice+'a>>>>,
@@ -44,26 +45,18 @@ impl <'b> Board <'b>{
 
         t
     }
-    pub fn action(& mut self,(x_from,y_from):(usize,usize),(x_to,y_to):(usize,usize)){
-        let mut temp = None;
-        std::mem::swap(&mut self.grid[y_from][x_from], &mut temp);
-        std::mem::swap(&mut self.grid[y_to][x_to], &mut temp);
-    }
-    pub fn can_move(& mut self,from:(usize,usize),to:(usize,usize))->Result<(),String>{
+    pub fn process_command(& mut self,from:(usize,usize),to:(usize,usize))->Box<dyn Action>{
         match self.get(from){
-            None => Err("No piece to move".to_string()),
+            None => Box::new(Invalid::news("No piece to move".to_string())),
             Some(piece)=> {
-                if piece.can_move(from,to,&self){
-                    Ok(())
-                }else{
-                    Err("Ilegle Move".to_string())
-                }
+                piece.process_command(from,to,&self)
             }
         }
     }
     pub fn get(&self,(x,y):(usize,usize))->&Option<Box<dyn pieces::Pice+'b>>{
         &self.grid[y][x]
     }
+    //TODO consider getting rid of this.
     pub fn get_mut(&mut self,(x,y):(usize,usize))->&mut Option<Box<dyn pieces::Pice+'b>>{
         &mut self.grid[y][x]
     }
@@ -78,5 +71,68 @@ impl <'b> Board <'b>{
                 g(y);
                 y+=1;
             }
+    }
+}
+//I am transitioning to a command pattern here these will be actions that can modify the board.
+pub trait Action{
+    fn apply(&self, board:&mut Board);
+    fn to_string(&self)->String;
+}
+
+pub struct Move{
+    from : (usize,usize),
+    to : (usize,usize),
+}
+
+impl Move{
+    pub fn new(from : (usize,usize),to : (usize,usize))->Move{
+        Move {from:from,to:to}
+    }
+}
+impl Action for Move{
+    fn apply(&self, board:&mut Board){
+        let (x_from,y_from) = self.from;
+        let (x_to,y_to) = self.to;
+        let mut temp = None;
+        std::mem::swap(&mut board.grid[y_from][x_from], &mut temp);
+        std::mem::swap(&mut board.grid[y_to][x_to], &mut temp);
+        match board.get_mut(self.to){
+            None =>{panic!(); }, //This should never happen as we just moved this piece.
+            Some(x)=> x.make_move(),
+        }
+    }
+    fn to_string(&self)->String{
+        format!("Move {:?},{:?}",self.from,self.to).to_string()
+    }
+}
+pub struct Captrue{
+    movement : Move,
+    captrued : dyn pieces::Pice,
+}
+impl Action for Captrue{
+    fn apply(&self, _board:&mut Board){//TODO
+    }
+    fn to_string(&self)->String{
+        self.movement.to_string() + "Captrue"
+    }
+}
+
+pub struct Invalid {
+    message: String,
+}
+// TODO resolve the two news
+impl Invalid{
+    pub fn new()->Invalid{
+        Invalid{message :"".to_string()}
+    }
+    pub fn news(message:String)->Invalid{
+        Invalid{message : message}
+    }
+}
+impl Action for Invalid{
+    fn apply(&self, _board:&mut Board){//TODO
+    }
+    fn to_string(&self)->String{
+        format!("Invalid {}", self.message).to_string()
     }
 }
