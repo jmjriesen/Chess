@@ -67,7 +67,7 @@ impl <'a>Game<'a>{
         game.display();
         let log = game.get_log();
 
-        assert_eq!(log[0].to_string(),board::Invalid::new().to_string());
+        assert_eq!(log[0].to_string(),board::Invalid::new("No piece to take").to_string());
 }
 #[test]
 fn pawn_movement_test2(){
@@ -89,7 +89,7 @@ fn pawn_movement_test3(){
     game.action((0,6),(1,5));
     game.display();
     let log = game.get_log();
-    assert_eq!(log[0].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[0].to_string(),board::Invalid::new("No piece to take").to_string());
 }
 
 #[test]
@@ -127,8 +127,8 @@ fn pawn_movement_test5(){
     assert_eq!(log[1].to_string(),board::Move::new((0,2),(0,3)).to_string());
     assert_eq!(log[2].to_string(),board::Move::new((0,6),(0,5)).to_string());
     assert_eq!(log[3].to_string(),board::Move::new((0,5),(0,4)).to_string());
-    assert_eq!(log[4].to_string(),board::Invalid::new().to_string());
-    assert_eq!(log[4].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[4].to_string(),board::Invalid::new("Piece in the way").to_string());
+    assert_eq!(log[4].to_string(),board::Invalid::new("Piece in the way").to_string());
 }
 
 #[test]
@@ -145,7 +145,7 @@ fn pawn_movement_test6(){
     let log = game.get_log();
 
     assert_eq!(log[0].to_string(),board::Move::new((0,1),(0,2)).to_string());
-    assert_eq!(log[1].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[1].to_string(),board::Invalid::new("Can not take your own piece").to_string());
 }
 
 #[test]
@@ -161,7 +161,7 @@ fn pawn_movement_test7(){
     let log = game.get_log();
 
     assert_eq!(log[0].to_string(),board::Move::new((0,1),(0,3)).to_string());
-    assert_eq!(log[1].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[1].to_string(),board::Invalid::new("").to_string());
 }
 
 
@@ -179,7 +179,7 @@ fn pawn_movement_test8(){
     let log = game.get_log();
 
     assert_eq!(log[0].to_string(),board::Move::new((0,1),(0,2)).to_string());
-    assert_eq!(log[1].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[1].to_string(),board::Invalid::new("").to_string());
 }
 
 #[test]
@@ -197,8 +197,8 @@ fn rook_movement_test1(){
 
     let log = game.get_log();
 
-    assert_eq!(log[0].to_string(),board::Invalid::new().to_string());
-    assert_eq!(log[1].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[0].to_string(),board::Invalid::new("Something is in the way").to_string());
+    assert_eq!(log[1].to_string(),board::Invalid::new("Can not take your own piece").to_string());
 }
 
 
@@ -236,7 +236,7 @@ fn rook_movement_test2(){
     assert_eq!(log[4].to_string(),board::Move::new((0,0),(0,3)).to_string());
     assert_eq!(log[5].to_string(),board::Move::new((0,3),(7,3)).to_string());
     assert_eq!(log[6].to_string(),board::Move::new((7,3),(7,6)).to_string());
-    assert_eq!(log[7].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[7].to_string(),board::Invalid::new("Something is in the way").to_string());
     assert_eq!(log[8].to_string(),board::Move::new((7,6),(7,3)).to_string());
     assert_eq!(log[9].to_string(),board::Move::new((7,3),(0,3)).to_string());
 }
@@ -271,9 +271,9 @@ fn knight_movement_test2(){
 
     let log = game.get_log();
 
-    assert_eq!(log[0].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[0].to_string(),board::Invalid::new("Can not take your own piece").to_string());
     assert_eq!(log[1].to_string(),board::Move::new((1,0),(2,2)).to_string());
-    assert_eq!(log[2].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[2].to_string(),board::Invalid::new("").to_string());
     assert_eq!(log[3].to_string(),board::Move::new((2,2),(1,0)).to_string());
     assert_eq!(log[4].to_string(),board::Move::new((1,0),(0,2)).to_string());
     assert_eq!(log[5].to_string(),board::Move::new((0,2),(1,4)).to_string());
@@ -303,10 +303,10 @@ fn bishops_movement_test2(){
 
     let log = game.get_log();
 
-    assert_eq!(log[0].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[0].to_string(),board::Invalid::new("Something is in the way").to_string());
     assert_eq!(log[1].to_string(),board::Move::new((3,1),(3,2)).to_string());
     assert_eq!(log[2].to_string(),board::Move::new((2,0),(5,3)).to_string());
-    assert_eq!(log[3].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[3].to_string(),board::Invalid::new("Something is in the way").to_string());
 
     assert_eq!(log[4].to_string(),board::Move::new((5,3),(2,6)).to_string());
 }
@@ -345,9 +345,9 @@ fn king_movement_test2(){
     assert_eq!(log[1].to_string(),board::Move::new((3,0),(4,1)).to_string());
     assert_eq!(log[2].to_string(),board::Move::new((4,1),(3,2)).to_string());
     assert_eq!(log[3].to_string(),board::Move::new((3,2),(3,3)).to_string());
-    assert_eq!(log[4].to_string(),board::Invalid::new().to_string());
-    assert_eq!(log[5].to_string(),board::Invalid::new().to_string());
-    assert_eq!(log[6].to_string(),board::Invalid::new().to_string());
+    assert_eq!(log[4].to_string(),board::Invalid::new("").to_string());
+    assert_eq!(log[5].to_string(),board::Invalid::new("").to_string());
+    assert_eq!(log[6].to_string(),board::Invalid::new("").to_string());
 }
 
 

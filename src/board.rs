@@ -47,7 +47,7 @@ impl <'b> Board <'b>{
     }
     pub fn process_command(& mut self,from:(usize,usize),to:(usize,usize))->Box<dyn Action>{
         match self.get(from){
-            None => Box::new(Invalid::news("No piece to move".to_string())),
+            None => Box::new(Invalid::new("No piece to move")),
             Some(piece)=> {
                 piece.process_command(from,to,&self)
             }
@@ -118,14 +118,11 @@ impl Action for Captrue{
 }
 
 pub struct Invalid {
-    message: String,
+    message: &'static str,
 }
 // TODO resolve the two news
 impl Invalid{
-    pub fn new()->Invalid{
-        Invalid{message :"".to_string()}
-    }
-    pub fn news(message:String)->Invalid{
+    pub fn new(message:&'static str)->Invalid{
         Invalid{message : message}
     }
 }

@@ -33,26 +33,26 @@ impl <'a>Pice for Pawn<'a>{
         if y_delta == self.direction && x_delta ==0{
             match board.get(to){
                 None => Box::new(Move::new(from,to)),
-                Some(_)=> Box::new(Invalid::new()),
+                Some(_)=> Box::new(Invalid::new("Piece in the way")),
         }
         }else if y_delta == 2*self.direction && x_delta == 0 && self.moved == false{
             match board.get(to){
                 None => Box::new(Move::new(from,to)),
-                Some(_)=> Box::new(Invalid::new()),
+                Some(_)=> Box::new(Invalid::new("Piece in the way")),
             }
         }else if y_delta == self.direction && (x_delta ==1 || x_delta ==-1){
             match board.get(to){
-                None => Box::new(Invalid::new()),
+                None => Box::new(Invalid::new("No piece to take")),
                 Some(to_take)=> {
                     if to_take.owner()!=self.owner(){
                         Box::new(Move::new(from,to))
                     }else {
-                        Box::new(Invalid::new())
+                        Box::new(Invalid::new("Can not take your own piece"))
                     }
                 },
             }
         }else{
-            Box::new(Invalid::new())
+            Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -91,7 +91,7 @@ impl <'a>Pice for Rook<'a>{
                 path_clear(from,(1,0),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-           Box::new(Invalid::new())
+           Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -118,7 +118,7 @@ impl <'a>Pice for Knight<'a>{
         if (x_delta.abs() == 2 && y_delta.abs() == 1) ||( x_delta.abs() == 1 && y_delta.abs() == 2){
          path_clear(from,(x_delta,y_delta),1,board,self.owner())
         }else{
-            Box::new(Invalid::new())
+            Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -154,7 +154,7 @@ impl <'a>Pice for Bishops<'a>{
                 path_clear(from,(1,-1),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-            Box::new(Invalid::new())
+            Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -181,7 +181,7 @@ impl <'a>Pice for King<'a>{
         if (x_delta.abs() == 1 || x_delta.abs() == 0) && (y_delta.abs() == 1 || y_delta.abs() == 0){
             path_clear(from,(x_delta,y_delta),1,board,self.owner())
         }else{
-            Box::new(Invalid::new())
+            Box::new(Invalid::new(""))
         }
         //TODO Castling
     }
@@ -232,7 +232,7 @@ impl <'a>Pice for Queen<'a>{
                 path_clear(from,(1,0),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-          Box::new(Invalid::new())
+          Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -264,12 +264,12 @@ fn path_clear(start:(usize,usize),derection:(isize,isize),length:usize,board:&bo
                 if to_take.owner()!=player {
                     Box::new(Move::new(start,to))
                 }else {
-                    Box::new(Invalid::new())
+                    Box::new(Invalid::new("Can not take your own piece"))
                 }
             },
         }
     }else{
-        Box::new(Invalid::new())
+        Box::new(Invalid::new("Something is in the way"))
     }
 }
 
