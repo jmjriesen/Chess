@@ -3,30 +3,31 @@ use crate::board;
 use crate::board::Action;
 use crate::board::Invalid;
 use crate::board::Move;
+use crate::board::Captrue;
 use crate::terminal;
 
-pub trait Pice: terminal::Print{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>;
+pub trait Pice<'a>: terminal::Print{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>;
     fn owner(&self)->&Player;
     fn make_move(&mut self);
 }
 
 pub struct Pawn<'a>{
- pub owner : &'a Player,
- direction : isize,
+    pub owner : &'a Player,
+    direction : isize,
     moved : bool
 }
 impl <'a> Pawn<'a>{
-    pub fn new(owner:&Player,direction:isize)->Pawn{
+    pub fn new(owner:&'a Player,direction:isize)->Pawn{
         Pawn{
             owner : owner,
             direction:direction,
-                moved : false,
+            moved : false,
         }
     }
 }
-impl <'a>Pice for Pawn<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
+impl <'a>Pice<'a> for Pawn<'a>{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
 
         let (x_delta,y_delta) = find_delta(from,to);
 
@@ -34,7 +35,7 @@ impl <'a>Pice for Pawn<'a>{
             match board.get(to){
                 None => Box::new(Move::new(from,to)),
                 Some(_)=> Box::new(Invalid::new("Piece in the way")),
-        }
+            }
         }else if y_delta == 2*self.direction && x_delta == 0 && self.moved == false{
             match board.get(to){
                 None => Box::new(Move::new(from,to)),
@@ -45,7 +46,7 @@ impl <'a>Pice for Pawn<'a>{
                 None => Box::new(Invalid::new("No piece to take")),
                 Some(to_take)=> {
                     if to_take.owner()!=self.owner(){
-                        Box::new(Move::new(from,to))
+                        Box::new(Captrue::new(from,to))
                     }else {
                         Box::new(Invalid::new("Can not take your own piece"))
                     }
@@ -75,8 +76,8 @@ impl <'a> Rook<'a>{
         }
     }
 }
-impl <'a>Pice for Rook<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
+impl <'a>Pice<'a> for Rook<'a>{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
         if x_delta ==0{
             if y_delta < 0 {
@@ -91,7 +92,7 @@ impl <'a>Pice for Rook<'a>{
                 path_clear(from,(1,0),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-           Box::new(Invalid::new(""))
+            Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -112,11 +113,11 @@ impl <'a> Knight<'a>{
         }
     }
 }
-impl <'a>Pice for Knight<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
+impl <'a>Pice<'a> for Knight<'a>{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 2 && y_delta.abs() == 1) ||( x_delta.abs() == 1 && y_delta.abs() == 2){
-         path_clear(from,(x_delta,y_delta),1,board,self.owner())
+            path_clear(from,(x_delta,y_delta),1,board,self.owner())
         }else{
             Box::new(Invalid::new(""))
         }
@@ -137,8 +138,8 @@ impl <'a> Bishops<'a>{
         }
     }
 }
-impl <'a>Pice for Bishops<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
+impl <'a>Pice<'a> for Bishops<'a>{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
 
         if x_delta == y_delta{
@@ -175,8 +176,8 @@ impl <'a> King<'a>{
         }
     }
 }
-impl <'a>Pice for King<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
+impl <'a>Pice<'a> for King<'a>{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 1 || x_delta.abs() == 0) && (y_delta.abs() == 1 || y_delta.abs() == 0){
             path_clear(from,(x_delta,y_delta),1,board,self.owner())
@@ -203,8 +204,8 @@ impl <'a> Queen<'a>{
         }
     }
 }
-impl <'a>Pice for Queen<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board)->Box<dyn Action>{
+impl <'a>Pice<'a> for Queen<'a>{
+    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         println!("Much Other");
         let (x_delta,y_delta) = find_delta(from,to);
         if x_delta == y_delta{
@@ -232,7 +233,7 @@ impl <'a>Pice for Queen<'a>{
                 path_clear(from,(1,0),x_delta.abs() as usize,board,self.owner())
             }
         }else{
-          Box::new(Invalid::new(""))
+            Box::new(Invalid::new(""))
         }
     }
     fn owner(&self)->&Player{
@@ -248,7 +249,7 @@ fn find_delta(from:(usize,usize),to:(usize,usize))->(isize,isize){
     let y_delta = y_to as isize - y_from as isize;
     (x_delta,y_delta)
 }
-fn path_clear(start:(usize,usize),derection:(isize,isize),length:usize,board:&board::Board,player:&Player)->Box<dyn Action>{
+fn path_clear<'a>(start:(usize,usize),derection:(isize,isize),length:usize,board:&board::Board<'a>,player:&Player)->Box<dyn Action<'a>+'a>{
     let mut path_clear = true;
     for i in 1..length{
         match board.get(compute_pose(start,derection,i)){
@@ -262,7 +263,7 @@ fn path_clear(start:(usize,usize),derection:(isize,isize),length:usize,board:&bo
             None => Box::new(Move::new(start,to)),
             Some(to_take)=> {
                 if to_take.owner()!=player {
-                    Box::new(Move::new(start,to))
+                    Box::new(Captrue::new(start,to))
                 }else {
                     Box::new(Invalid::new("Can not take your own piece"))
                 }

@@ -2,13 +2,13 @@ use crate::pieces;
 use crate::pieces::Pice;
 use crate::Player;
 pub struct Board<'a>{
-      grid :Vec<Vec<Option<Box<dyn pieces::Pice+'a>>>>,
+      grid :Vec<Vec<Option<Box<dyn pieces::Pice<'a> +'a>>>>,
 }
 
 impl <'b> Board <'b>{
     pub fn new(player_one:&'b Player,player_two:&'b Player)->Board<'b>{
 
-        let mut t = Board{
+        let mut t :Board<'b>= Board{
             grid: Vec::new(),
         };
         // set up the 2d vector.
@@ -18,11 +18,11 @@ impl <'b> Board <'b>{
                 t.grid[x].push(None);
             }
         }
-        //placing the pawns
-        for (player,row) in [(player_one,1),(player_two,6)].iter(){
-            let direction = if *row==1 {1}else{-1};
+        for entry in [(player_one,1),(player_two,6)].iter(){
+            let (player,row): (&'b Player,usize) = *entry;
+            let direction = if row==1 {1}else{-1};
             for x in 0..8{
-                t.grid[*row][x] = Some(Box::new(pieces::Pawn::new(player,direction)));
+                t.grid[row][x] = Some(Box::new(pieces::Pawn::new(player,direction)));
             }
         }
         //placing symmetric Pieces.
@@ -42,10 +42,9 @@ impl <'b> Board <'b>{
         t.grid[7][3] = Some(Box::new(pieces::King::new(player_two)));
         t.grid[0][4] = Some(Box::new(pieces::Queen::new(player_one)));
         t.grid[7][4] = Some(Box::new(pieces::Queen::new(player_two)));
-
         t
     }
-    pub fn process_command(& mut self,from:(usize,usize),to:(usize,usize))->Box<dyn Action>{
+    pub fn process_command(&mut self,from:(usize,usize),to:(usize,usize))->Box<dyn Action<'b>+'b>{
         match self.get(from){
             None => Box::new(Invalid::new("No piece to move")),
             Some(piece)=> {
@@ -53,11 +52,11 @@ impl <'b> Board <'b>{
             }
         }
     }
-    pub fn get(&self,(x,y):(usize,usize))->&Option<Box<dyn pieces::Pice+'b>>{
+    pub fn get(&self,(x,y):(usize,usize))->&std::option::Option<std::boxed::Box<(dyn pieces::Pice<'b> + 'b)>>{
         &self.grid[y][x]
     }
     //TODO consider getting rid of this.
-    pub fn get_mut(&mut self,(x,y):(usize,usize))->&mut Option<Box<dyn pieces::Pice+'b>>{
+    pub fn get_mut(&mut self,(x,y):(usize,usize))->&mut Option<Box<dyn pieces::Pice<'b>+'b>>{
         &mut self.grid[y][x]
     }
     pub fn foreach(&self,f:fn(&Option<Box<dyn pieces::Pice+'b>>,usize,usize),g:fn(usize)){
@@ -74,8 +73,8 @@ impl <'b> Board <'b>{
     }
 }
 //I am transitioning to a command pattern here these will be actions that can modify the board.
-pub trait Action{
-    fn apply(&self, board:&mut Board);
+pub trait Action<'a>{
+    fn apply(&mut self, board:&mut Board<'a>);
     fn to_string(&self)->String;
 }
 
@@ -89,8 +88,8 @@ impl Move{
         Move {from:from,to:to}
     }
 }
-impl Action for Move{
-    fn apply(&self, board:&mut Board){
+impl<'a> Action<'a> for Move{
+    fn apply(&mut self, board:&mut Board<'a>){
         let (x_from,y_from) = self.from;
         let (x_to,y_to) = self.to;
         let mut temp = None;
@@ -105,16 +104,32 @@ impl Action for Move{
         format!("Move {:?},{:?}",self.from,self.to).to_string()
     }
 }
-pub struct Captrue{
+
+pub struct Captrue<'a>{
     movement : Move,
-    captrued : dyn pieces::Pice,
+    captrued : Option<Box::<dyn pieces::Pice<'a>+'a>>,
 }
-impl Action for Captrue{
-    fn apply(&self, _board:&mut Board){//TODO
+
+impl <'a>Captrue<'a>{
+    pub fn new(from : (usize,usize),to : (usize,usize))->Captrue<'a>{
+        Captrue{
+            movement:Move {from:from,to:to},
+            captrued : None,
+
+        }
+    }
+}
+
+impl <'a>Action<'a> for Captrue<'a>{
+    fn apply(&mut self, board:&mut Board<'a>){
+        let (x_to,y_to) = self.movement.to;
+        std::mem::swap(&mut board.grid[y_to][x_to], &mut self.captrued);
+        self.movement.apply(board);
     }
     fn to_string(&self)->String{
         self.movement.to_string() + "Captrue"
     }
+
 }
 
 pub struct Invalid {
@@ -126,8 +141,8 @@ impl Invalid{
         Invalid{message : message}
     }
 }
-impl Action for Invalid{
-    fn apply(&self, _board:&mut Board){//TODO
+impl <'a>Action<'a> for Invalid{
+    fn apply(&mut self, _board:&mut Board){
     }
     fn to_string(&self)->String{
         format!("Invalid {}", self.message).to_string()

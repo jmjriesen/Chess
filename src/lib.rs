@@ -26,7 +26,7 @@ pub struct Game<'a>{
     player_one: &'a Player,
     player_two: &'a Player,
     board:board::Board<'a>,
-    log:Vec<Box<dyn Action>>
+    log:Vec<Box<dyn Action<'a>+'a>>
 }
 impl <'a>Game<'a>{
     pub fn new(player_one:&'a Player,player_two:&'a Player)->Game<'a>{
@@ -44,11 +44,11 @@ impl <'a>Game<'a>{
     }
     pub fn action(& mut self,from:(usize,usize),to:(usize,usize)){
 
-        let action = self.board.process_command(from,to);
+        let mut action = self.board.process_command(from,to);
         action.apply(&mut self.board);
-        self.log.push(action)
+        self.log.push(action);
     }
-    pub fn get_log(&self)->&Vec<Box<dyn Action>>{
+    pub fn get_log(&self)->&Vec<Box<dyn Action<'a>+'a>>{
         &self.log
     }
 }
@@ -235,7 +235,7 @@ fn rook_movement_test2(){
     assert_eq!(log[3].to_string(),board::Move::new((0,3),(0,0)).to_string());
     assert_eq!(log[4].to_string(),board::Move::new((0,0),(0,3)).to_string());
     assert_eq!(log[5].to_string(),board::Move::new((0,3),(7,3)).to_string());
-    assert_eq!(log[6].to_string(),board::Move::new((7,3),(7,6)).to_string());
+    assert_eq!(log[6].to_string(),board::Captrue::new((7,3),(7,6)).to_string());
     assert_eq!(log[7].to_string(),board::Invalid::new("Something is in the way").to_string());
     assert_eq!(log[8].to_string(),board::Move::new((7,6),(7,3)).to_string());
     assert_eq!(log[9].to_string(),board::Move::new((7,3),(0,3)).to_string());
@@ -277,7 +277,7 @@ fn knight_movement_test2(){
     assert_eq!(log[3].to_string(),board::Move::new((2,2),(1,0)).to_string());
     assert_eq!(log[4].to_string(),board::Move::new((1,0),(0,2)).to_string());
     assert_eq!(log[5].to_string(),board::Move::new((0,2),(1,4)).to_string());
-    assert_eq!(log[6].to_string(),board::Move::new((1,4),(2,6)).to_string());
+    assert_eq!(log[6].to_string(),board::Captrue::new((1,4),(2,6)).to_string());
 }
 
 
@@ -308,7 +308,7 @@ fn bishops_movement_test2(){
     assert_eq!(log[2].to_string(),board::Move::new((2,0),(5,3)).to_string());
     assert_eq!(log[3].to_string(),board::Invalid::new("Something is in the way").to_string());
 
-    assert_eq!(log[4].to_string(),board::Move::new((5,3),(2,6)).to_string());
+    assert_eq!(log[4].to_string(),board::Captrue::new((5,3),(2,6)).to_string());
 }
 
 #[test]
