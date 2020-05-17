@@ -6,8 +6,10 @@ use crate::board::Move;
 use crate::board::Captrue;
 use crate::terminal;
 
+type Point = (usize,usize);
+
 pub trait Pice<'a>: terminal::Print{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>;
+    fn process_command(&self,from: Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>;
     fn owner(&self)->&Player;
     fn make_move(&mut self);
 }
@@ -27,7 +29,7 @@ impl <'a> Pawn<'a>{
     }
 }
 impl <'a>Pice<'a> for Pawn<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
+    fn process_command(&self,from:Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
 
         let (x_delta,y_delta) = find_delta(from,to);
 
@@ -77,7 +79,7 @@ impl <'a> Rook<'a>{
     }
 }
 impl <'a>Pice<'a> for Rook<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
+    fn process_command(&self,from:Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
         if x_delta ==0{
             if y_delta < 0 {
@@ -114,7 +116,7 @@ impl <'a> Knight<'a>{
     }
 }
 impl <'a>Pice<'a> for Knight<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
+    fn process_command(&self,from:Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 2 && y_delta.abs() == 1) ||( x_delta.abs() == 1 && y_delta.abs() == 2){
             path_clear(from,(x_delta,y_delta),1,board,self.owner())
@@ -139,7 +141,7 @@ impl <'a> Bishops<'a>{
     }
 }
 impl <'a>Pice<'a> for Bishops<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
+    fn process_command(&self,from:Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
 
         if x_delta == y_delta{
@@ -177,7 +179,7 @@ impl <'a> King<'a>{
     }
 }
 impl <'a>Pice<'a> for King<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
+    fn process_command(&self,from:Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         let (x_delta,y_delta) = find_delta(from,to);
         if (x_delta.abs() == 1 || x_delta.abs() == 0) && (y_delta.abs() == 1 || y_delta.abs() == 0){
             path_clear(from,(x_delta,y_delta),1,board,self.owner())
@@ -205,7 +207,7 @@ impl <'a> Queen<'a>{
     }
 }
 impl <'a>Pice<'a> for Queen<'a>{
-    fn process_command(&self,from:(usize,usize),to:(usize,usize),board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
+    fn process_command(&self,from:Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>{
         println!("Much Other");
         let (x_delta,y_delta) = find_delta(from,to);
         if x_delta == y_delta{
@@ -242,14 +244,14 @@ impl <'a>Pice<'a> for Queen<'a>{
     fn make_move(&mut self){}
 }
 
-fn find_delta(from:(usize,usize),to:(usize,usize))->(isize,isize){
+fn find_delta(from:Point,to:Point)->(isize,isize){
     let (x_from,y_from) = from;
     let (x_to,y_to) = to;
     let x_delta = x_to as isize - x_from as isize;
     let y_delta = y_to as isize - y_from as isize;
     (x_delta,y_delta)
 }
-fn path_clear<'a>(start:(usize,usize),derection:(isize,isize),length:usize,board:&board::Board<'a>,player:&Player)->Box<dyn Action<'a>+'a>{
+fn path_clear<'a>(start:Point,derection:(isize,isize),length:usize,board:&board::Board<'a>,player:&Player)->Box<dyn Action<'a>+'a>{
     let mut path_clear = true;
     for i in 1..length{
         match board.get(compute_pose(start,derection,i)){
@@ -274,7 +276,7 @@ fn path_clear<'a>(start:(usize,usize),derection:(isize,isize),length:usize,board
     }
 }
 
-fn compute_pose(start:(usize,usize),derection:(isize,isize),length:usize)->(usize,usize){
+fn compute_pose(start:Point,derection:(isize,isize),length:usize)->Point{
     let (x,y) = start;
     let (x_delta,y_delta) = derection;
     let new_x = x as isize + length as isize *x_delta;

@@ -6,7 +6,7 @@ pub struct Board<'a>{
 }
 
 impl <'b> Board <'b>{
-    pub fn new(player_one:&'b Player,player_two:&'b Player)->Board<'b>{
+    pub fn new(player_one:&'b Player,player_two:&'b Player)->Self{
 
         let mut t :Board<'b>= Board{
             grid: Vec::new(),
@@ -84,7 +84,7 @@ pub struct Move{
 }
 
 impl Move{
-    pub fn new(from : (usize,usize),to : (usize,usize))->Move{
+    pub fn new(from : (usize,usize),to : (usize,usize))->Self{
         Move {from:from,to:to}
     }
 }
@@ -111,7 +111,7 @@ pub struct Captrue<'a>{
 }
 
 impl <'a>Captrue<'a>{
-    pub fn new(from : (usize,usize),to : (usize,usize))->Captrue<'a>{
+    pub fn new(from : (usize,usize),to : (usize,usize))->Self{
         Captrue{
             movement:Move {from:from,to:to},
             captrued : None,
@@ -137,7 +137,7 @@ pub struct Invalid {
 }
 // TODO resolve the two news
 impl Invalid{
-    pub fn new(message:&'static str)->Invalid{
+    pub fn new(message:&'static str)->Self{
         Invalid{message : message}
     }
 }

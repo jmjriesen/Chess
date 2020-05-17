@@ -4,12 +4,13 @@ pub mod board;
 use board::Action;
 use crate::terminal::Print;
 
+
 pub struct Player{
     color : String,
     name :  String
 }
 impl Player{
-    pub fn new(name:String,color:String)->Player{
+    pub fn new(name:String,color:String)->Self{
         Player{
             name:name,
             color:color,
@@ -29,7 +30,7 @@ pub struct Game<'a>{
     log:Vec<Box<dyn Action<'a>+'a>>
 }
 impl <'a>Game<'a>{
-    pub fn new(player_one:&'a Player,player_two:&'a Player)->Game<'a>{
+    pub fn new(player_one:&'a Player,player_two:&'a Player)->Self{
         Game{
             board : board::Board::new(player_one,player_two),
             player_one :player_one,
