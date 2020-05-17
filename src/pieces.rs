@@ -4,9 +4,9 @@ use crate::board::Action;
 use crate::board::Invalid;
 use crate::board::Move;
 use crate::board::Captrue;
+use crate::board::Point;
 use crate::terminal;
 
-type Point = (usize,usize);
 
 pub trait Pice<'a>: terminal::Print{
     fn process_command(&self,from: Point,to:Point,board:&board::Board<'a>)->Box<dyn Action<'a>+'a>;
