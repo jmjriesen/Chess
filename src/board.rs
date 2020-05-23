@@ -2,6 +2,7 @@ use crate::pieces;
 use crate::pieces::Pice;
 use crate::Player;
 
+
 pub type Point = (usize,usize);
 
 pub struct Board<'a>{
