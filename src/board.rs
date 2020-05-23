@@ -1,5 +1,4 @@
 use crate::pieces;
-use crate::pieces::Pice;
 use crate::Player;
 
 pub type Point = (usize,usize);
@@ -47,9 +46,9 @@ impl <'b> Board <'b>{
         t.grid[7][4] = Some(Box::new(pieces::Queen::new(player_two)));
         t
     }
-    pub fn process_command(&mut self,from:(usize,usize),to:(usize,usize))->Box<dyn Action<'b>+'b>{
+    pub fn process_command(&mut self,from:(usize,usize),to:(usize,usize))->ActionB<'b>{
         match self.get(from){
-            None => Box::new(Invalid::new("No piece to move")),
+            None => ActionB::Invalid("No piece to move".to_string()),
             Some(piece)=> {
                 piece.process_command(from,to,&self)
             }
@@ -58,10 +57,18 @@ impl <'b> Board <'b>{
     pub fn get(&self,(x,y):(usize,usize))->&std::option::Option<std::boxed::Box<(dyn pieces::Pice<'b> + 'b)>>{
         &self.grid[y][x]
     }
-    //TODO consider getting rid of this.
-    pub fn get_mut(&mut self,(x,y):(usize,usize))->&mut Option<Box<dyn pieces::Pice<'b>+'b>>{
-        &mut self.grid[y][x]
+
+    pub fn take(&mut self,(x,y):Point)->std::option::Option<std::boxed::Box<(dyn pieces::Pice<'b> + 'b)>>{
+        let mut temp = None;
+        std::mem::swap(&mut self.grid[y][x], &mut temp);
+        temp
     }
+
+    pub fn set(&mut self,(x,y):Point, entry :std::option::Option<std::boxed::Box<(dyn pieces::Pice<'b> + 'b)>>){
+        let mut temp = entry;
+        std::mem::swap(&mut self.grid[y][x], &mut temp);
+    }
+
     pub fn foreach(&self,f:fn(&Option<Box<dyn pieces::Pice+'b>>,usize,usize),g:fn(usize)){
         let mut y = 0;
             for row in &self.grid {
@@ -75,79 +82,41 @@ impl <'b> Board <'b>{
             }
     }
 }
+
 //I am transitioning to a command pattern here these will be actions that can modify the board.
-pub trait Action<'a>{
-    fn apply(&mut self, board:&mut Board<'a>);
-    fn to_string(&self)->String;
+pub enum ActionB<'b>{
+    Move{from:Point,to:Point},
+    Capture{from:Point,to:Point,temp:Option<Box<dyn pieces::Pice<'b>+'b>>},
+    Invalid(String)
 }
-
-pub struct Move{
-    from : (usize,usize),
-    to : (usize,usize),
-}
-
-impl Move{
-    pub fn new(from : (usize,usize),to : (usize,usize))->Self{
-        Move {from:from,to:to}
+impl<'b> ActionB<'b>{
+    pub fn to_string(&self)->String{
+        let string = match &self{
+            ActionB::Move{from,to}=> format!("Move from {:?} to {:?}",from,to),
+            ActionB::Capture{from,to,temp:_}=>format!("Capture from {:?} to {:?}",from,to),
+            ActionB::Invalid(s)=> format!("Invalid {}",s),
+        };
+        string.to_string()
     }
-}
-impl<'a> Action<'a> for Move{
-    fn apply(&mut self, board:&mut Board<'a>){
-        let (x_from,y_from) = self.from;
-        let (x_to,y_to) = self.to;
-        let mut temp = None;
-        std::mem::swap(&mut board.grid[y_from][x_from], &mut temp);
-        std::mem::swap(&mut board.grid[y_to][x_to], &mut temp);
-        match board.get_mut(self.to){
-            None =>{panic!(); }, //This should never happen as we just moved this piece.
-            Some(x)=> x.make_move(),
+    pub fn apply(&mut self,board: &mut Board<'b>){
+        let transport = |from:Point, to:Point,board:&mut Board<'b>|{
+            let mut piece = board.take(from);
+            match &mut piece{
+                None => {panic!();},
+                Some(data) => {data.make_move();},
+            }
+            board.set(to, piece);
+        };
+
+        match self{
+            ActionB::Move{from,to}=>{
+                transport(*from,*to,board);
+            },
+            ActionB::Capture{from,to,temp}=>{
+                *temp = board.take(*to);
+                transport(*from,*to,board);
+            },
+            ActionB::Invalid(_)=>{ },
         }
-    }
-    fn to_string(&self)->String{
-        format!("Move {:?},{:?}",self.from,self.to).to_string()
-    }
-}
-
-pub struct Captrue<'a>{
-    movement : Move,
-    captrued : Option<Box::<dyn pieces::Pice<'a>+'a>>,
-}
-
-impl <'a>Captrue<'a>{
-    pub fn new(from : (usize,usize),to : (usize,usize))->Self{
-        Captrue{
-            movement:Move {from:from,to:to},
-            captrued : None,
-
-        }
-    }
-}
-
-impl <'a>Action<'a> for Captrue<'a>{
-    fn apply(&mut self, board:&mut Board<'a>){
-        let (x_to,y_to) = self.movement.to;
-        std::mem::swap(&mut board.grid[y_to][x_to], &mut self.captrued);
-        self.movement.apply(board);
-    }
-    fn to_string(&self)->String{
-        self.movement.to_string() + "Captrue"
-    }
-
-}
-
-pub struct Invalid {
-    message: &'static str,
-}
-// TODO resolve the two news
-impl Invalid{
-    pub fn new(message:&'static str)->Self{
-        Invalid{message : message}
-    }
-}
-impl <'a>Action<'a> for Invalid{
-    fn apply(&mut self, _board:&mut Board){
-    }
-    fn to_string(&self)->String{
-        format!("Invalid {}", self.message).to_string()
     }
 }
